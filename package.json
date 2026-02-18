@@ -27,8 +27,8 @@
     "drizzle-kit": "catalog:drizzle",
     "effect": "catalog:effect",
     "konteks": "^0.0.7",
-    "oxlint": "^1.47.0",
-    "oxlint-tsgolint": "^0.12.1",
+    "oxlint": "^1.48.0",
+    "oxlint-tsgolint": "^0.14.0",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "simple-git-hooks": "^2.13.1",
@@ -36,7 +36,7 @@
     "vitest": "catalog:vite",
     "wrangler": "catalog:cloudflare"
   },
-  "packageManager": "pnpm@10.29.3",
+  "packageManager": "pnpm@10.30.0",
   "comments": [
     "I added wrangler here is because of deps, alchemy has mismatching version required with @cloudflare/vite-plugin. This forces wrangler to be a specific version"
   ]
