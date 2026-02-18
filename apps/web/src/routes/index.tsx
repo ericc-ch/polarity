@@ -108,11 +108,6 @@ function SearchBar() {
           )}
           {!isLoading && results.length > 0 && (
             <>
-              {searchQuery.length < 2 && (
-                <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
-                  Top Repositories
-                </div>
-              )}
               <ComboboxList>
                 {(item: unknown) => {
                   const repo = item as GitHubRepo
