@@ -32,18 +32,12 @@ export class Repository extends Schema.Class<Repository>("Repository")({
   fullName: RepositoryFullName,
   status: RepositoryStatus,
   lastSyncAt: Schema.Number.pipe(Schema.int()),
-  errorMessage: Schema.optionalWith(Schema.String, { as: "Option" }),
+  errorMessage: Schema.NullOr(Schema.String),
   createdAt: Schema.Number.pipe(Schema.int()),
   updatedAt: Schema.Number.pipe(Schema.int()),
 }) {}
 
-export const RepositoryInsert = Schema.Struct(Repository.fields)
-
-export const RepositoryUpdate = Schema.partial(
-  Schema.Struct({
-    status: Repository.fields.status,
-    lastSyncAt: Repository.fields.lastSyncAt,
-    errorMessage: Repository.fields.errorMessage,
-    updatedAt: Repository.fields.updatedAt,
-  }),
+export const RepositoryInsert = Schema.Struct(Repository.fields).pipe(
+  Schema.omit("fullName", "createdAt", "updatedAt"),
 )
+export const RepositoryUpdate = Schema.partial(RepositoryInsert)
