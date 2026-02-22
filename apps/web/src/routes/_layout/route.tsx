@@ -15,9 +15,12 @@ function LayoutComponent() {
     <div className="grid min-h-screen grid-rows-[auto_1fr]">
       <header className="sticky top-0 px-4">
         <nav className="mx-auto flex h-12 max-w-3xl items-center justify-between">
-          <div className="text-foreground font-mono text-sm font-medium">
+          <Link
+            to="/"
+            className="text-foreground font-mono text-sm font-medium"
+          >
             polarity
-          </div>
+          </Link>
 
           <div className="flex items-center gap-2">
             <Link
