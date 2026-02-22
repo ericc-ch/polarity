@@ -12,9 +12,9 @@ Always explore the codebase first using grep/glob/read tools to understand the s
 
 Monorepo structure:
 
-- apps/api: Hono + oRPC (Cloudflare Workers)
-- apps/web: Vite + React + TanStack Router
-- packages/shared: oRPC contracts, Drizzle schemas, Zod validation
+- apps/api: Effect + Effect RPC (Cloudflare Workers)
+- apps/web: Vite + React + TanStack Start
+- packages/shared: Effect RPC contracts, Drizzle schemas, Zod validation
 
 Tech stack:
 
@@ -27,7 +27,7 @@ References:
 
 - apps/api/src/main.ts - API entry point
 - apps/web/src/main.tsx - Web entry point
-- packages/shared/src/contract/main.ts - oRPC contract definitions
+- packages/shared/src/contract/main.ts - Effect RPC contract definitions
 - packages/shared/src/schema/main.ts - Drizzle schemas
 - alchemy.run.ts - Cloudflare deployment config
 
@@ -68,7 +68,7 @@ Always break down large changes into multiple focused atomic commits.
 
 ## App-Specific Guidelines
 
-### apps/web (Vite + React + TanStack Router)
+### apps/web (Vite + React + TanStack Start)
 
 #### Effect RPC
 
@@ -265,7 +265,7 @@ import { buttonVariants } from "@/components/ui/button"
 
 ---
 
-### apps/api (Hono + oRPC + Cloudflare Workers)
+### apps/api (Effect + Effect RPC + Cloudflare Workers)
 
 #### Dependency Injection
 

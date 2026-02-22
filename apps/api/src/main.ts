@@ -53,7 +53,7 @@ export default {
     const RpcRoutes = HttpLayerRouter.use(
       Effect.fn(function* (router) {
         const httpApp = yield* RpcServer.toHttpApp(RootRpcGroup)
-        return yield* router.add("POST", "/rpc/*", httpApp)
+        return yield* router.add("POST", "/rpc", httpApp)
       }),
     ).pipe(
       Layer.provide(RpcSerialization.layerJsonRpc()),

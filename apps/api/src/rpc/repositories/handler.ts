@@ -83,20 +83,21 @@ const parseRepoUrl = (url: string): Effect.Effect<string, ValidationError> => {
   )
 }
 
-const validateFullName = (
-  fullName: string,
-): Effect.Effect<string, ValidationError> =>
-  Effect.gen(function* () {
-    const result = Schema.decodeUnknownEither(RepositoryFullName)(fullName)
-    if (result._tag === "Left") {
-      return yield* new ValidationError({
-        message: `Invalid repository name: ${fullName}`,
-      })
-    }
-    return result.right
-  })
+const validateFullName = Effect.fn(function* (fullName: string) {
+  const result = Schema.decodeUnknownEither(RepositoryFullName)(fullName)
+  if (result._tag === "Left") {
+    return yield* new ValidationError({
+      message: `Invalid repository name: ${fullName}`,
+    })
+  }
+  return result.right
+})
 
 export const RepositoriesHandlers = RepositoriesRpcGroup.toLayer({
+  RepositoryList: Effect.fn(function* () {
+    const db = yield* Database
+    return yield* Effect.promise(() => db.select().from(repositoriesTable))
+  }),
   RepositorySubmit: Effect.fn(function* (payload) {
     const service = yield* RepositoryService
     return yield* service.submit(payload.repoUrl)
