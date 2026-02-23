@@ -4,7 +4,7 @@
   "type": "module",
   "exports": {
     "./env": "./src/lib/env.ts",
-    "./main": "./src/main.ts"
+    ".": "./src/main.ts"
   },
   "scripts": {
     "test": "vitest"

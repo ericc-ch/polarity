@@ -11,9 +11,6 @@ node_modules/
 # alchemy states
 .alchemy/
 
-# llm context
-.context/
-
 # typescript
 *.tsbuildinfo
 
