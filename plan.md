@@ -22,21 +22,21 @@ migrate from effect-based stack to traditional async/await with hono rpc, tansta
 
 ### remove (all packages)
 
-- [ ] `effect` ^3.19.18
-- [ ] `@effect/platform` ^0.94.5
-- [ ] `@effect/rpc` ^0.73.2
-- [ ] `@effect/sql` ^0.49.0
-- [ ] `@effect/sql-d1` ^0.47.0
-- [ ] `@effect/sql-drizzle` ^0.48.1
-- [ ] `@effect-atom/atom-react` ^0.5.0
-- [ ] `@effect/experimental` ^0.58.0
-- [ ] `@effect/language-service` ^0.74.0
+- [x] `effect` ^3.19.18
+- [x] `@effect/platform` ^0.94.5
+- [x] `@effect/rpc` ^0.73.2
+- [x] `@effect/sql` ^0.49.0
+- [x] `@effect/sql-d1` ^0.47.0
+- [x] `@effect/sql-drizzle` ^0.48.1
+- [x] `@effect-atom/atom-react` ^0.5.0
+- [x] `@effect/experimental` ^0.58.0
+- [x] `@effect/language-service` ^0.74.0
 
 ### add
 
-- [ ] `hono` ^4.7.0
-- [ ] `@hono/zod-validator` ^0.4.3
-- [ ] `@tanstack/react-query` ^5.66.0
+- [x] `hono` ^4.7.0
+- [x] `@hono/zod-validator` ^0.4.3
+- [x] `@tanstack/react-query` ^5.66.0
 
 ---
 
@@ -248,7 +248,7 @@ export class NotFoundError extends Error {
 
 ### 3.8 rpc/contract.ts
 
-- [ ] delete file (no longer needed with hono)
+- [x] delete file (no longer needed with hono)
 
 ### 3.9 main.ts (entry point)
 

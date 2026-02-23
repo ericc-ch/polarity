@@ -4,20 +4,16 @@
   "type": "module",
   "exports": {
     "./env": "./src/lib/env.ts",
-    "./rpc": "./src/rpc/contract.ts"
+    "./main": "./src/main.ts"
   },
   "scripts": {
     "test": "vitest"
   },
   "dependencies": {
-    "@effect/platform": "catalog:effect",
-    "@effect/rpc": "catalog:effect",
-    "@effect/sql": "catalog:effect",
-    "@effect/sql-d1": "catalog:effect",
-    "@effect/sql-drizzle": "catalog:effect",
+    "@hono/zod-validator": "^0.4.3",
     "better-auth": "catalog:better-auth",
     "drizzle-orm": "catalog:drizzle",
-    "effect": "catalog:effect",
+    "hono": "^4.7.0",
     "shared": "workspace:*",
     "zod": "catalog:default"
   },

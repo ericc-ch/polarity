@@ -7,7 +7,7 @@
     "dev": "alchemy dev",
     "format": "prettier --write .",
     "lint": "oxlint --type-aware",
-    "prepare": "simple-git-hooks && effect-language-service patch && konteks sync",
+    "prepare": "simple-git-hooks && konteks sync",
     "test": "vitest",
     "typecheck": "tsc --build"
   },
@@ -17,14 +17,12 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:cloudflare",
-    "@effect/language-service": "catalog:effect",
     "@libsql/client": "catalog:default",
     "@types/node": "catalog:default",
     "alchemy": "^0.85.1",
     "api": "workspace:*",
     "dotenv": "^17.3.1",
     "drizzle-kit": "catalog:drizzle",
-    "effect": "catalog:effect",
     "konteks": "^0.0.7",
     "oxlint": "^1.48.0",
     "oxlint-tsgolint": "^0.14.0",

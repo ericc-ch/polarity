@@ -7,7 +7,6 @@
     "./schema": "./src/schema/main.ts"
   },
   "peerDependencies": {
-    "effect": "catalog:effect",
     "better-auth": "catalog:better-auth",
     "drizzle-orm": "catalog:drizzle",
     "zod": "catalog:default"

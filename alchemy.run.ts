@@ -3,47 +3,33 @@ import { CloudflareStateStore, FileSystemStateStore } from "alchemy/state"
 import { D1Database, Worker, TanStackStart } from "alchemy/cloudflare"
 import { Exec } from "alchemy/os"
 import { config } from "dotenv"
-import { Schema } from "effect"
-import { EnvSchema as ApiEnvSchema } from "api/env"
+import { z } from "zod"
+import { parseEnv as parseApiEnv } from "api/env"
 
 config({ path: "./.env" })
 config({ path: "./apps/api/.env" })
 config({ path: "./apps/web/.env" })
 
-const AlchemyEnvSchema = Schema.Struct({
-  ALCHEMY_PASSWORD: Schema.String.pipe(Schema.minLength(1)),
-  ALCHEMY_STAGE: Schema.Literal("dev", "main").pipe(
-    Schema.optional,
-    Schema.withDefaults({
-      decoding: () => "dev" as const,
-      constructor: () => "dev" as const,
-    }),
-  ),
-  ALCHEMY_REMOTE_STATE: Schema.Literal("true", "false").pipe(
-    Schema.optional,
-    Schema.withDefaults({
-      decoding: () => "false" as const,
-      constructor: () => "false" as const,
-    }),
-  ),
+const AlchemyEnvSchema = z.object({
+  ALCHEMY_PASSWORD: z.string().min(1),
+  ALCHEMY_STAGE: z.enum(["dev", "main"]).default("dev"),
+  ALCHEMY_REMOTE_STATE: z.enum(["true", "false"]).default("false"),
 })
 
-const RemoteEnvSchema = Schema.Struct({
-  WEB_DOMAIN: Schema.String.pipe(Schema.minLength(1)),
-  API_DOMAIN: Schema.String.pipe(Schema.minLength(1)),
+const RemoteEnvSchema = z.object({
+  WEB_DOMAIN: z.string().min(1),
+  API_DOMAIN: z.string().min(1),
 })
 
-const alchemyEnvRaw = Schema.decodeUnknownSync(AlchemyEnvSchema)(process.env)
+const alchemyEnvRaw = AlchemyEnvSchema.parse(process.env)
 const alchemyEnv = {
   ...alchemyEnvRaw,
   ALCHEMY_REMOTE_STATE: alchemyEnvRaw.ALCHEMY_REMOTE_STATE === "true",
 }
 
-const apiEnv = Schema.decodeUnknownSync(ApiEnvSchema)(process.env)
+const apiEnv = parseApiEnv(process.env as Record<string, string>)
 const remoteEnv =
-  alchemyEnv.ALCHEMY_REMOTE_STATE ?
-    Schema.decodeUnknownSync(RemoteEnvSchema)(process.env)
-  : null
+  alchemyEnv.ALCHEMY_REMOTE_STATE ? RemoteEnvSchema.parse(process.env) : null
 
 const app = await alchemy("polarity", {
   password: alchemyEnv.ALCHEMY_PASSWORD,
@@ -69,9 +55,9 @@ export const api = await Worker("api", {
   domains: remoteEnv ? [remoteEnv.API_DOMAIN] : [],
   bindings: {
     DB: db,
-    API_CORS_ORIGIN: apiEnv.API_CORS_ORIGIN.href,
+    API_CORS_ORIGIN: apiEnv.API_CORS_ORIGIN,
     API_BETTER_AUTH_SECRET: alchemy.secret(apiEnv.API_BETTER_AUTH_SECRET),
-    API_BETTER_AUTH_URL: apiEnv.API_BETTER_AUTH_URL.href,
+    API_BETTER_AUTH_URL: apiEnv.API_BETTER_AUTH_URL,
     API_GITHUB_CLIENT_ID: apiEnv.API_GITHUB_CLIENT_ID,
     API_GITHUB_CLIENT_SECRET: alchemy.secret(apiEnv.API_GITHUB_CLIENT_SECRET),
   },

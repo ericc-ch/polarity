@@ -184,14 +184,31 @@ Next: Begin working on first task.
 ---
 
 - Tasks completed in this session
-  - Determined rpc session helpers were unused and removed them
-  - Checked off rpc util session task items in plan
+  - Migrated all Effect dependencies to Hono + TanStack Query
+  - Removed Effect packages from api and web package.json files
+  - Added hono, @hono/zod-validator, and @tanstack/react-query
+  - Removed effect catalog from pnpm-workspace.yaml
+  - Updated shared package peerDependencies to remove effect
+  - Converted alchemy.run.ts from Effect Schema to zod
+  - Deleted apps/api/src/rpc/contract.ts (no longer needed)
+  - Updated api package exports to point to main.ts instead of rpc contract
+  - Checked off all dependency tasks in plan
 - Decisions made and why
-  - Deleted `rpc/util/session.ts` because no imports or usage remain after Hono migration
+  - Changed api export from "./rpc" to "./main" to expose AppType for Hono client
+  - Used zod's z.url() which returns strings (not URL objects) in zod v4
+  - Removed effect-language-service from prepare script since it's no longer needed
+  - Fresh lockfile install was needed after removing effect catalog
 - Blockers encountered
-  - `pnpm run typecheck` fails due to missing Hono deps and lingering Effect-era rpc contract exports
-  - `pnpm run test` exits with no test files found
+  - Initial pnpm install failed due to lingering catalog:effect references in lockfile
+  - alchemy.run.ts had type mismatches with process.env and URL types
 - Files changed
-  - apps/api/src/rpc/util/session.ts
+  - package.json
+  - apps/api/package.json
+  - apps/web/package.json
+  - packages/shared/package.json
+  - pnpm-workspace.yaml
+  - alchemy.run.ts
+  - apps/api/src/rpc/contract.ts (deleted)
   - plan.md
+  - pnpm-lock.yaml
   - progress.txt
