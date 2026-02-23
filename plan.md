@@ -231,14 +231,14 @@ export class NotFoundError extends Error {
 
 **same pattern:** convert to hono routes
 
-- [ ] create `routes/repositories.ts`
-- [ ] set up hono app with `new Hono<{ Bindings: Env }>()`
-- [ ] create zod schema for submit body
-- [ ] `GET /` - list repositories
-- [ ] `POST /` - submit repository (parse url, check exists, create)
-- [ ] move `parseRepoUrl` logic into route
-- [ ] export `RepositoriesAppType`
-- [ ] delete old `rpc/repositories/` folder
+- [x] create `routes/repositories.ts`
+- [x] set up hono app with `new Hono<{ Bindings: Env }>()`
+- [x] create zod schema for submit body
+- [x] `GET /` - list repositories
+- [x] `POST /` - submit repository (parse url, check exists, create)
+- [x] move `parseRepoUrl` logic into route
+- [x] export `RepositoriesAppType`
+- [x] delete old `rpc/repositories/` folder
 
 ### 3.7 rpc/util/session.ts
 
@@ -672,7 +672,7 @@ packages/shared/src/
    - [x] lib/db.ts
    - [x] lib/auth.ts (merge main + make)
    - [x] routes/books.ts
-   - [ ] routes/repositories.ts
+   - [x] routes/repositories.ts
    - [ ] main.ts
    - [ ] run typecheck
    - [ ] test all routes manually

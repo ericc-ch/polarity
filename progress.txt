@@ -144,3 +144,22 @@ Next: Begin working on first task.
   - apps/api/src/rpc/books/handler.ts
   - plan.md
   - progress.txt
+
+---
+
+- Tasks completed in this session
+  - Added Hono repositories routes with list and submit handlers
+  - Moved repository URL parsing and validation into the new route module
+  - Deleted old Effect RPC repositories contract/handler files
+  - Checked off repositories route tasks in plan
+- Decisions made and why
+  - Returned `{ data }` from the list route to match books list response shape
+  - Kept validation errors as 400 JSON responses to align with Hono route patterns
+- Blockers encountered
+  - `pnpm run typecheck` fails due to remaining Effect-era modules and missing Hono dependencies; tests and lint did not run because typecheck failed
+- Files changed
+  - apps/api/src/routes/repositories.ts
+  - apps/api/src/rpc/repositories/contract.ts
+  - apps/api/src/rpc/repositories/handler.ts
+  - plan.md
+  - progress.txt
