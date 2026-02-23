@@ -82,14 +82,14 @@ export type BookUpdate = z.infer<typeof BookUpdate>
 
 **same pattern:** convert effect schema to zod
 
-- [ ] convert `Repository` class to zod schema
-- [ ] convert `RepositoryFullName` to zod schema
-- [ ] convert `RepositoryId` to zod schema
-- [ ] convert `RepositoryStatus` to zod enum
-- [ ] convert `RepositoryInsert` to zod schema
-- [ ] convert `RepositoryUpdate` to zod schema
-- [ ] export types with `z.infer`
-- [ ] remove effect imports
+- [x] convert `Repository` class to zod schema
+- [x] convert `RepositoryFullName` to zod schema
+- [x] convert `RepositoryId` to zod schema
+- [x] convert `RepositoryStatus` to zod enum
+- [x] convert `RepositoryInsert` to zod schema
+- [x] convert `RepositoryUpdate` to zod schema
+- [x] export types with `z.infer`
+- [x] remove effect imports
 
 ---
 
@@ -662,9 +662,9 @@ packages/shared/src/
 ## 6. migration order
 
 1. [ ] **shared package** - convert effect schema to zod (no breaking changes yet)
-   - [ ] books.sql.ts
-   - [ ] repositories.sql.ts
-   - [ ] run typecheck
+   - [x] books.sql.ts
+   - [x] repositories.sql.ts
+   - [x] run typecheck
    - [ ] run tests if any
 
 2. [ ] **api package** - rewrite with hono (parallel to existing, test both)

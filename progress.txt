@@ -23,3 +23,19 @@ Next: Begin working on first task.
   - plan.md
   - pnpm-lock.yaml
   - progress.txt
+
+---
+
+- Tasks completed in this session
+  - Converted repositories schema to zod with inferred types
+  - Updated plan checklist for repositories schema and shared package typecheck
+  - Ran typecheck and lint
+- Decisions made and why
+  - Used `z.enum(repositoryStatus)` to keep DB enum values aligned with validation
+  - Kept `errorMessage` as nullable to match existing schema intent
+- Blockers encountered
+  - `pnpm run test` failed: no test files found
+- Files changed
+  - packages/shared/src/schema/repositories.sql.ts
+  - plan.md
+  - progress.txt

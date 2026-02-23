@@ -1,5 +1,5 @@
 import * as sqlite from "drizzle-orm/sqlite-core"
-import { Schema } from "effect"
+import { z } from "zod"
 
 export const repositoryStatus = [
   "pending",
@@ -8,8 +8,6 @@ export const repositoryStatus = [
   "active",
   "error",
 ] as const
-
-export type RepositoryStatus = (typeof repositoryStatus)[number]
 
 export const repositories = sqlite.sqliteTable("repositories", {
   fullName: sqlite.text().primaryKey(),
@@ -20,24 +18,32 @@ export const repositories = sqlite.sqliteTable("repositories", {
   updatedAt: sqlite.integer().notNull(),
 })
 
-export const RepositoryFullName = Schema.String.pipe(
-  Schema.pattern(/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/),
-)
+export const RepositoryFullName = z
+  .string()
+  .regex(/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/)
 
 export const RepositoryId = RepositoryFullName
 
-export const RepositoryStatus = Schema.Literal(...repositoryStatus)
+export const RepositoryStatus = z.enum(repositoryStatus)
 
-export class Repository extends Schema.Class<Repository>("Repository")({
+export const Repository = z.object({
   fullName: RepositoryFullName,
   status: RepositoryStatus,
-  lastSyncAt: Schema.Number.pipe(Schema.int()),
-  errorMessage: Schema.NullOr(Schema.String),
-  createdAt: Schema.Number.pipe(Schema.int()),
-  updatedAt: Schema.Number.pipe(Schema.int()),
-}) {}
+  lastSyncAt: z.number().int(),
+  errorMessage: z.string().nullable(),
+  createdAt: z.number().int(),
+  updatedAt: z.number().int(),
+})
 
-export const RepositoryInsert = Schema.Struct(Repository.fields).pipe(
-  Schema.omit("fullName", "createdAt", "updatedAt"),
-)
-export const RepositoryUpdate = Schema.partial(RepositoryInsert)
+export type Repository = z.infer<typeof Repository>
+export type RepositoryStatus = z.infer<typeof RepositoryStatus>
+
+export const RepositoryInsert = Repository.omit({
+  fullName: true,
+  createdAt: true,
+  updatedAt: true,
+})
+export type RepositoryInsert = z.infer<typeof RepositoryInsert>
+
+export const RepositoryUpdate = RepositoryInsert.partial()
+export type RepositoryUpdate = z.infer<typeof RepositoryUpdate>
