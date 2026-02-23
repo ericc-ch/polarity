@@ -38,12 +38,6 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "forceConsistentCasingInFileNames": true,
-    "erasableSyntaxOnly": true,
-
-    "plugins": [
-      {
-        "name": "@effect/language-service"
-      }
-    ]
+    "erasableSyntaxOnly": true
   }
 }

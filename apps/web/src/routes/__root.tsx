@@ -1,7 +1,16 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
-import { RegistryProvider } from "@effect-atom/atom-react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type React from "react"
 import globalCss from "../global.css?url"
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 export const Route = createRootRoute({
   head: () => ({
@@ -47,7 +56,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <RegistryProvider>{children}</RegistryProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>

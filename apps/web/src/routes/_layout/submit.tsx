@@ -1,38 +1,54 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RpcClientTag } from "@/lib/rpc"
-import { useAtomSet } from "@effect-atom/atom-react"
+import { apiClient } from "@/lib/api"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "@tanstack/react-form"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Schema } from "effect"
+import { z } from "zod"
 
-const submitSchema = Schema.standardSchemaV1(
-  Schema.Struct({
-    repoUrl: Schema.String.pipe(
-      Schema.minLength(1, {
-        message: () => "Repository URL is required",
-      }),
-      Schema.filter((url) => {
+const submitSchema = z.object({
+  repoUrl: z
+    .string()
+    .min(1, "Repository URL is required")
+    .refine(
+      (url) => {
         const githubRegex =
-          /^https:\/\/github\.com\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+\/?$/
-        const shorthandRegex = /^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/
-        const isValid = githubRegex.test(url) || shorthandRegex.test(url)
-        return (
-          isValid
-          || "Enter a valid GitHub repository URL (e.g., https://github.com/owner/repo or owner/repo)"
-        )
-      }),
+          /^https:\/\/github\.com\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+\/?$/
+        const shorthandRegex = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/
+        return githubRegex.test(url) || shorthandRegex.test(url)
+      },
+      {
+        message:
+          "Enter a valid GitHub repository URL (e.g., https://github.com/owner/repo or owner/repo)",
+      },
     ),
-  }),
-)
+})
 
-type SubmitFormData = Schema.Schema.Type<typeof submitSchema>
+type SubmitFormData = z.infer<typeof submitSchema>
 
 export const Route = createFileRoute("/_layout/submit")({
   component: function Submit() {
-    const submitRepo = useAtomSet(RpcClientTag.mutation("RepositorySubmit"), {
-      mode: "promise",
+    const queryClient = useQueryClient()
+
+    const submitRepo = useMutation({
+      mutationFn: async (repoUrl: string) => {
+        const res = await apiClient.repositories.$post({
+          json: { repoUrl },
+        })
+        if (!res.ok) {
+          const error = await res.json()
+          throw new Error(
+            typeof error === "object" && error && "error" in error ?
+              String(error.error)
+            : "Failed to submit",
+          )
+        }
+        return res.json()
+      },
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["repositories"] })
+      },
     })
 
     const form = useForm({
@@ -43,12 +59,7 @@ export const Route = createFileRoute("/_layout/submit")({
         onSubmit: submitSchema,
       },
       onSubmit: async ({ value }) => {
-        const result = await submitRepo({
-          payload: { repoUrl: value.repoUrl },
-          reactivityKeys: ["repositories"],
-        })
-
-        console.log("Repository submitted:", result)
+        await submitRepo.mutateAsync(value.repoUrl)
       },
     })
 
