@@ -29,10 +29,11 @@ Monorepo with Hono API, Vite + React + TanStack Start frontend.
 
 - `pnpm run dev` - Start all services
 - `pnpm run typecheck` - TypeScript checks
+- `pnpm run test` - Run tests
 - `pnpm run lint` - Lint with oxlint
 - `pnpm run format` - Format with Prettier
 
-Always run typecheck and lint after changes.
+Always run typecheck, test, and lint after changes (in that order).
 
 ## Coding Standards
 

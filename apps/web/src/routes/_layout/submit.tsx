@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { apiClient } from "@/lib/api"
-import { isValidGitHubRepoUrl } from "@/lib/github-url"
+import { isValidGitHubRepoUrl } from "shared"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "@tanstack/react-form"
 import { createFileRoute, Link } from "@tanstack/react-router"
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_layout/submit")({
 
     const submitRepo = useMutation({
       mutationFn: async (repoUrl: string) => {
-        const res = await apiClient.repositories.$post({
+        const res = await apiClient.api.repositories.$post({
           json: { repoUrl },
         })
         if (!res.ok) {

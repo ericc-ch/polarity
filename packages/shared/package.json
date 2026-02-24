@@ -7,8 +7,12 @@
     "./schema": "./src/schema/main.ts"
   },
   "peerDependencies": {
+    "arkregex": "^0.0.5",
     "better-auth": "catalog:better-auth",
     "drizzle-orm": "catalog:drizzle",
     "zod": "catalog:default"
+  },
+  "devDependencies": {
+    "vitest": "catalog:vite"
   }
 }

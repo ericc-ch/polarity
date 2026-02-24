@@ -10,10 +10,10 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.4.3",
+    "@hono/zod-validator": "catalog:hono",
     "better-auth": "catalog:better-auth",
     "drizzle-orm": "catalog:drizzle",
-    "hono": "^4.7.0",
+    "hono": "catalog:hono",
     "shared": "workspace:*",
     "zod": "catalog:default"
   },
