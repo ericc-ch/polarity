@@ -1,6 +1,6 @@
 import alchemy, { type Scope } from "alchemy"
 import { CloudflareStateStore, FileSystemStateStore } from "alchemy/state"
-import { D1Database, Worker, TanStackStart } from "alchemy/cloudflare"
+import { D1Database, Worker, TanStackStart, Zone } from "alchemy/cloudflare"
 import { Exec } from "alchemy/os"
 import { config } from "dotenv"
 import { z } from "zod"
@@ -43,6 +43,8 @@ const app = await alchemy("juxtapose", {
 await Exec("db-generate", {
   command: "pnpm run db:generate",
 })
+
+const zone = await Zone()
 
 const db = await D1Database("db", {
   migrationsDir: "./migrations/",
