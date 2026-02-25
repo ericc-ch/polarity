@@ -136,29 +136,63 @@ const app = new Hono<HonoContext>()
 
     const octokit = new Octokit({ auth: tokenResponse.accessToken })
 
-    // Fetch 1 issue
-    const { data: issues } = await octokit.rest.issues.listForRepo({
-      owner,
-      repo,
-      state: "open",
-      per_page: 1,
-    })
+    // GraphQL query to fetch 1 issue and 1 PR with their details
+    type GraphQLResponse = {
+      repository: {
+        issues: {
+          nodes: Array<{ title: string; bodyText: string }>
+        }
+        pullRequests: {
+          nodes: Array<{
+            title: string
+            bodyText: string
+            files: {
+              nodes: Array<{ path: string }>
+            }
+          }>
+        }
+      }
+    }
 
-    // Fetch 1 PR
-    const { data: pulls } = await octokit.rest.pulls.list({
-      owner,
-      repo,
-      state: "open",
-      per_page: 1,
-    })
+    const { repository } = await octokit.graphql<GraphQLResponse>(
+      /* GraphQL */ `
+        query ($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            issues(first: 1, states: OPEN) {
+              nodes {
+                title
+                bodyText
+              }
+            }
+            pullRequests(first: 1, states: OPEN) {
+              nodes {
+                title
+                bodyText
+                files(first: 100) {
+                  nodes {
+                    path
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      {
+        owner,
+        repo,
+      },
+    )
 
-    console.log("Fetched issue:", issues[0])
-    console.log("Fetched PR:", pulls[0])
+    const issue = repository.issues.nodes.at(0) ?? null
+    const pullRequest = repository.pullRequests.nodes.at(0) ?? null
+
+    console.log("Fetched issue:", issue)
+    console.log("Fetched PR:", pullRequest)
 
     return c.json({
-      success: true,
-      issue: issues[0] ?? null,
-      pullRequest: pulls[0] ?? null,
+      issue,
+      pullRequest,
     })
   })
 
