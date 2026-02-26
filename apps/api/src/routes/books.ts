@@ -20,11 +20,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
     const { id } = c.req.valid("param")
     const db = c.get("db")
 
-    const data = await db
-      .select()
-      .from(booksTable)
-      .where(eq(booksTable.id, id))
-      .limit(1)
+    const data = await db.select().from(booksTable).where(eq(booksTable.id, id)).limit(1)
 
     const book = data.at(0)
     if (!book) {
@@ -76,11 +72,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
   .delete("/:id", zValidator("param", bookIdParamSchema), async (c) => {
     const { id } = c.req.valid("param")
     const db = c.get("db")
-    const deleted = await db
-      .delete(booksTable)
-      .where(eq(booksTable.id, id))
-      .returning()
-      .limit(1)
+    const deleted = await db.delete(booksTable).where(eq(booksTable.id, id)).returning().limit(1)
 
     const book = deleted.at(0)
     if (!book) {
