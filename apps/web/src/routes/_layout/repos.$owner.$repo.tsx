@@ -28,9 +28,7 @@ function RepoDetailsPage() {
 
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiClient.api.repositories[":owner"][
-        ":repo"
-      ].sync.$post({
+      const res = await apiClient.api.repositories[":owner"][":repo"].sync.$post({
         param: { owner, repo },
       })
       if (!res.ok) {
@@ -66,35 +64,24 @@ function RepoDetailsPage() {
   })
 
   if (isLoading) {
-    return (
-      <div className="text-muted-foreground py-8 text-center">
-        Loading repository...
-      </div>
-    )
+    return <div className="text-muted-foreground py-8 text-center">Loading repository...</div>
   }
 
   if (error || !repoData) {
-    return (
-      <div className="text-destructive py-8 text-center">
-        Failed to load repository
-      </div>
-    )
+    return <div className="text-destructive py-8 text-center">Failed to load repository</div>
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between">
-        <Link
-          to="/"
-          className="text-muted-foreground hover:text-foreground text-sm"
-        >
+        <Link to="/" className="text-muted-foreground hover:text-foreground text-sm">
           ← Back to repositories
         </Link>
       </div>
 
       <div className="flex flex-col gap-4">
         <h1 className="font-mono text-2xl font-semibold">
-          {repoData.fullName}
+          {repoData.owner}/{repoData.repo}
         </h1>
 
         <div className="grid gap-4 rounded-lg border p-4">
@@ -121,9 +108,7 @@ function RepoDetailsPage() {
           {repoData.errorMessage && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Error</span>
-              <span className="text-destructive max-w-xs truncate">
-                {repoData.errorMessage}
-              </span>
+              <span className="text-destructive max-w-xs truncate">{repoData.errorMessage}</span>
             </div>
           )}
         </div>

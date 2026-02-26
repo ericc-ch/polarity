@@ -9,13 +9,10 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { z } from "zod"
 
 const submitSchema = z.object({
-  repoUrl: z
-    .string()
-    .min(1, "Repository URL is required")
-    .refine(isValidGitHubRepoUrl, {
-      message:
-        "Enter a valid GitHub repository URL (e.g., https://github.com/owner/repo or owner/repo)",
-    }),
+  repoUrl: z.string().min(1, "Repository URL is required").refine(isValidGitHubRepoUrl, {
+    message:
+      "Enter a valid GitHub repository URL (e.g., https://github.com/owner/repo or owner/repo)",
+  }),
 })
 
 type SubmitFormData = z.infer<typeof submitSchema>
@@ -32,9 +29,9 @@ export const Route = createFileRoute("/_layout/submit")({
         if (!res.ok) {
           const error = await res.json()
           throw new Error(
-            typeof error === "object" && error && "error" in error ?
-              String(error.error)
-            : "Failed to submit",
+            typeof error === "object" && error && "error" in error
+              ? String(error.error)
+              : "Failed to submit",
           )
         }
         return res.json()
@@ -80,23 +77,16 @@ export const Route = createFileRoute("/_layout/submit")({
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    aria-invalid={
-                      field.state.meta.errors.length > 0 ? "true" : "false"
-                    }
+                    aria-invalid={field.state.meta.errors.length > 0 ? "true" : "false"}
                     aria-describedby={
-                      field.state.meta.errors.length > 0 ?
-                        `${field.name}-error`
-                      : undefined
+                      field.state.meta.errors.length > 0 ? `${field.name}-error` : undefined
                     }
                   />
-                  {field.state.meta.errors.length > 0 ?
-                    <p
-                      id={`${field.name}-error`}
-                      className="text-destructive text-xs"
-                    >
+                  {field.state.meta.errors.length > 0 ? (
+                    <p id={`${field.name}-error`} className="text-destructive text-xs">
                       {field.state.meta.errors[0]?.message}
                     </p>
-                  : null}
+                  ) : null}
                 </div>
               )}
             />

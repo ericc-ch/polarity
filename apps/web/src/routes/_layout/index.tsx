@@ -5,7 +5,8 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { useMemo, useState } from "react"
 
 interface Repository {
-  fullName: string
+  owner: string
+  repo: string
   lastSyncAt: number | null
 }
 
@@ -37,8 +38,9 @@ export const Route = createFileRoute("/_layout/")({
       if (!repos) return []
       if (!searchQuery.trim()) return repos
       const query = searchQuery.toLowerCase()
-      return repos.filter((repo: Repository) =>
-        repo.fullName.toLowerCase().includes(query),
+      return repos.filter(
+        (repo: Repository) =>
+          repo.owner.toLowerCase().includes(query) || repo.repo.toLowerCase().includes(query),
       )
     }, [repos, searchQuery])
 
@@ -52,9 +54,7 @@ export const Route = createFileRoute("/_layout/")({
             aria-label="Search repositories"
             disabled
           />
-          <div className="text-muted-foreground py-8 text-center">
-            Loading repositories...
-          </div>
+          <div className="text-muted-foreground py-8 text-center">Loading repositories...</div>
         </div>
       )
     }
@@ -68,9 +68,7 @@ export const Route = createFileRoute("/_layout/")({
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search repositories"
           />
-          <div className="text-destructive py-8 text-center">
-            Failed to load repositories
-          </div>
+          <div className="text-destructive py-8 text-center">Failed to load repositories</div>
         </div>
       )
     }
@@ -84,33 +82,29 @@ export const Route = createFileRoute("/_layout/")({
           aria-label="Search repositories"
         />
 
-        {filteredRepos.length === 0 ?
-          <div className="text-muted-foreground py-8 text-center">
-            No repositories found
-          </div>
-        : filteredRepos.map((repo) => {
-            const [owner, repoName] = repo.fullName.split("/")
-            return (
-              <Link
-                key={repo.fullName}
-                to="/repos/$owner/$repo"
-                params={{ owner: owner!, repo: repoName! }}
-                className="flex items-center justify-between"
-                role="listitem"
-              >
-                <div className="truncate font-mono text-sm">
-                  <span className="text-muted-foreground">{owner}/</span>
-                  <span className="text-foreground">{repoName}</span>
-                </div>
-                <span className="w-20 text-right">
-                  {repo.lastSyncAt && repo.lastSyncAt > 0 ?
-                    formatRelativeTime(repo.lastSyncAt)
+        {filteredRepos.length === 0 ? (
+          <div className="text-muted-foreground py-8 text-center">No repositories found</div>
+        ) : (
+          filteredRepos.map((repo) => (
+            <Link
+              key={`${repo.owner}/${repo.repo}`}
+              to="/repos/$owner/$repo"
+              params={{ owner: repo.owner, repo: repo.repo }}
+              className="flex items-center justify-between"
+              role="listitem"
+            >
+              <div className="truncate font-mono text-sm">
+                <span className="text-muted-foreground">{repo.owner}/</span>
+                <span className="text-foreground">{repo.repo}</span>
+              </div>
+              <span className="w-20 text-right">
+                {repo.lastSyncAt && repo.lastSyncAt > 0
+                  ? formatRelativeTime(repo.lastSyncAt)
                   : "Queued"}
-                </span>
-              </Link>
-            )
-          })
-        }
+              </span>
+            </Link>
+          ))
+        )}
       </div>
     )
   },

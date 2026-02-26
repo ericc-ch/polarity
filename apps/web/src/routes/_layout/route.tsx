@@ -15,26 +15,21 @@ function LayoutComponent() {
     <div className="grid min-h-screen grid-rows-[auto_1fr]">
       <header className="sticky top-0 px-4">
         <nav className="mx-auto flex h-12 max-w-3xl items-center justify-between">
-          <Link
-            to="/"
-            className="text-foreground font-mono text-sm font-medium"
-          >
+          <Link to="/" className="text-foreground font-mono text-sm font-medium">
             juxtapose
           </Link>
 
           <div className="flex items-center gap-2">
-            <Link
-              to="/submit"
-              className={cn(buttonVariants({ variant: "outline" }))}
-            >
+            <Link to="/submit" className={cn(buttonVariants({ variant: "outline" }))}>
               Submit repo
             </Link>
 
-            {user ?
+            {user ? (
               <Button variant="outline" onClick={() => auth.signOut()}>
                 Sign out
               </Button>
-            : <Button
+            ) : (
+              <Button
                 onClick={() =>
                   auth.signIn.social({
                     provider: "github",
@@ -44,7 +39,7 @@ function LayoutComponent() {
               >
                 Sign in
               </Button>
-            }
+            )}
           </div>
         </nav>
       </header>
