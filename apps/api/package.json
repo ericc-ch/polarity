@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@hono/zod-validator": "catalog:hono",
+    "ai": "^6.0.101",
     "better-auth": "catalog:better-auth",
     "drizzle-orm": "catalog:drizzle",
     "hono": "catalog:hono",
     "octokit": "^5.0.5",
+    "ollama-ai-provider-v2": "^3.3.1",
     "shared": "workspace:*",
     "zod": "catalog:default"
   },

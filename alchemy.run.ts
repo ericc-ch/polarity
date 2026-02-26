@@ -1,5 +1,5 @@
 import alchemy, { type Scope } from "alchemy"
-import { D1Database, TanStackStart, Worker } from "alchemy/cloudflare"
+import { D1Database, R2Bucket, TanStackStart, Worker } from "alchemy/cloudflare"
 import { Exec } from "alchemy/os"
 import { CloudflareStateStore, FileSystemStateStore } from "alchemy/state"
 import { envSchema as apiEnvSchema } from "api/env"
@@ -10,18 +10,18 @@ config({ path: "./.env" })
 config({ path: "./apps/api/.env" })
 config({ path: "./apps/web/.env" })
 
-const AlchemyEnvSchema = z.object({
+const alchemyEnvSchema = z.object({
   ALCHEMY_PASSWORD: z.string().min(1),
   ALCHEMY_STAGE: z.enum(["dev", "main"]).default("dev"),
   ALCHEMY_REMOTE_STATE: z.enum(["true", "false"]).default("false"),
 })
 
-const RemoteEnvSchema = z.object({
+const remoteEnvSchema = z.object({
   WEB_DOMAIN: z.string().min(1),
   API_DOMAIN: z.string().min(1),
 })
 
-const alchemyEnvRaw = AlchemyEnvSchema.parse(process.env)
+const alchemyEnvRaw = alchemyEnvSchema.parse(process.env)
 const alchemyEnv = {
   ...alchemyEnvRaw,
   ALCHEMY_REMOTE_STATE: alchemyEnvRaw.ALCHEMY_REMOTE_STATE === "true",
@@ -29,7 +29,7 @@ const alchemyEnv = {
 
 const apiEnv = apiEnvSchema.parse(process.env)
 const remoteEnv =
-  alchemyEnv.ALCHEMY_REMOTE_STATE ? RemoteEnvSchema.parse(process.env) : null
+  alchemyEnv.ALCHEMY_REMOTE_STATE ? remoteEnvSchema.parse(process.env) : null
 
 const app = await alchemy("juxtapose", {
   password: alchemyEnv.ALCHEMY_PASSWORD,
@@ -48,6 +48,10 @@ const db = await D1Database("db", {
   migrationsDir: "./migrations/",
 })
 
+const storage = await R2Bucket("embeddings", {
+  domains: remoteEnv ? [remoteEnv.API_DOMAIN] : [],
+})
+
 export const api = await Worker("api", {
   cwd: "./apps/api",
   entrypoint: "./src/main.ts",
@@ -55,6 +59,7 @@ export const api = await Worker("api", {
   domains: remoteEnv ? [remoteEnv.API_DOMAIN] : [],
   bindings: {
     DB: db,
+    STORAGE: storage,
     API_CORS_ORIGIN: apiEnv.API_CORS_ORIGIN,
     API_BETTER_AUTH_SECRET: alchemy.secret(apiEnv.API_BETTER_AUTH_SECRET),
     API_BETTER_AUTH_URL: apiEnv.API_BETTER_AUTH_URL,

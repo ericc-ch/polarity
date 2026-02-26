@@ -34,7 +34,13 @@
     "zod": "catalog:default"
   },
   "packageManager": "pnpm@10.30.2",
+  "pnpm": {
+    "overrides": {
+      "drizzle-orm": "catalog:drizzle"
+    }
+  },
   "comments": [
-    "I added wrangler here is because of deps, alchemy has mismatching version required with @cloudflare/vite-plugin. This forces wrangler to be a specific version"
+    "I added wrangler here is because of deps, alchemy has mismatching version required with @cloudflare/vite-plugin. This forces wrangler to be a specific version",
+    "The pnpm.overrides.drizzle-orm setting forces a single shared instance of drizzle-orm across the monorepo. Without this, pnpm creates multiple instances (due to different peer dependency trees - @opentelemetry/api from 'ai' package, @cloudflare/workers-types version mismatches, etc). This causes TypeScript errors where SQLiteColumn/SQLiteTable types from one instance are incompatible with the same types from another instance because classes with private/protected members are nominally typed"
   ]
 }
