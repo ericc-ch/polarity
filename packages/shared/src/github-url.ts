@@ -3,17 +3,13 @@ import { regex } from "arkregex"
 const githubUrlRegex = regex(
   "^(?:https://|www\\.)?github\\.com/(?<owner>[a-zA-Z0-9._-]+)/(?<repo>[a-zA-Z0-9._-]+)/?$",
 )
-const githubShorthandRegex = regex(
-  "^(?<owner>[a-zA-Z0-9._-]+)/(?<repo>[a-zA-Z0-9._-]+)$",
-)
+const githubShorthandRegex = regex("^(?<owner>[a-zA-Z0-9._-]+)/(?<repo>[a-zA-Z0-9._-]+)$")
 
 export function isValidGitHubRepoUrl(url: string): boolean {
   return githubUrlRegex.test(url) || githubShorthandRegex.test(url)
 }
 
-export type ParseResult =
-  | { fullName: string; owner: string; repo: string }
-  | { error: string }
+export type ParseResult = { fullName: string; owner: string; repo: string } | { error: string }
 
 export function parseGitHubRepoUrl(url: string): ParseResult {
   const trimmed = url.trim()
@@ -37,7 +33,6 @@ export function parseGitHubRepoUrl(url: string): ParseResult {
   }
 
   return {
-    error:
-      "Invalid repository URL. Use format: https://github.com/owner/repo or owner/repo",
+    error: "Invalid repository URL. Use format: https://github.com/owner/repo or owner/repo",
   }
 }

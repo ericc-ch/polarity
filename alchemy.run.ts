@@ -28,16 +28,13 @@ const alchemyEnv = {
 }
 
 const apiEnv = apiEnvSchema.parse(process.env)
-const remoteEnv =
-  alchemyEnv.ALCHEMY_REMOTE_STATE ? remoteEnvSchema.parse(process.env) : null
+const remoteEnv = alchemyEnv.ALCHEMY_REMOTE_STATE ? remoteEnvSchema.parse(process.env) : null
 
 const app = await alchemy("juxtapose", {
   password: alchemyEnv.ALCHEMY_PASSWORD,
   stage: alchemyEnv.ALCHEMY_STAGE,
   stateStore: (scope: Scope) =>
-    remoteEnv ?
-      new CloudflareStateStore(scope)
-    : new FileSystemStateStore(scope),
+    remoteEnv ? new CloudflareStateStore(scope) : new FileSystemStateStore(scope),
 })
 
 await Exec("db-generate", {
