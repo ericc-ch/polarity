@@ -37,7 +37,8 @@ Always run typecheck, test, and lint after changes (in that order).
 
 ## Coding Standards
 
-- Minimize explicit types - let TypeScript infer
+- Never write explicit types - let TypeScript infer
+- No `.js` extensions in imports
 - Named exports preferred
 - Use `main.ts` not `index.ts`
 - No margin utilities - use `gap-*` instead

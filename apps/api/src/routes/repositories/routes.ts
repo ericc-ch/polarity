@@ -3,6 +3,8 @@ import { and, eq } from "drizzle-orm"
 import { Hono } from "hono"
 import { z } from "zod"
 import { parseGitHubRepoUrl, repositories as repositoriesTable } from "shared"
+import { compressGzip, decompressGzip } from "../../lib/compression"
+import { hashPr } from "../../lib/hash"
 import { generateEmbeddings, prepIssue, prepPullRequest } from "../../lib/embedding"
 import { getOctokit } from "../../lib/octokit"
 import { protectedMiddleware } from "../../middleware/protected"
@@ -29,37 +31,6 @@ interface VectorObject {
   syncedAt: number
   issues: { [id: string]: IssueVector }
   pullRequests: { [id: string]: PullRequestVector }
-}
-
-async function compressGzip(text: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(text)
-  const compressed = await new Response(
-    new ReadableStream({
-      start(controller) {
-        controller.enqueue(data)
-        controller.close()
-      },
-    }).pipeThrough(new CompressionStream("gzip")),
-  ).arrayBuffer()
-  return compressed
-}
-
-async function decompressGzip(buffer: ArrayBuffer): Promise<string> {
-  const decompressed = await new Response(
-    new Blob([buffer]).stream().pipeThrough(new DecompressionStream("gzip")),
-  ).arrayBuffer()
-  const decoder = new TextDecoder()
-  return decoder.decode(decompressed)
-}
-
-async function computeHash(title: string, body: string, filePaths: string[]): Promise<string> {
-  const content = title + "\n\n" + body + "\n\n" + filePaths.join("\n")
-  const encoder = new TextEncoder()
-  const data = encoder.encode(content)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
 }
 
 export const repositoriesRoutes = new Hono<HonoContext>()
@@ -112,7 +83,6 @@ export const repositoriesRoutes = new Hono<HonoContext>()
         owner,
         repo: repoName,
         lastSyncAt: 0,
-        errorMessage: null,
         createdAt: now,
         updatedAt: now,
       })
@@ -196,8 +166,7 @@ export const repositoriesRoutes = new Hono<HonoContext>()
       }
 
       if (pullRequest) {
-        const filePaths = pullRequest.files.nodes.map((f) => f.path)
-        const hash = await computeHash(pullRequest.title, pullRequest.bodyText, filePaths)
+        const hash = await hashPr(pullRequest)
         const existingPR = mergedPullRequests[pullRequest.id]
 
         // Only embed if hash changed or new PR
@@ -242,8 +211,7 @@ export const repositoriesRoutes = new Hono<HonoContext>()
 
       // Process PR
       if (pullRequest) {
-        const filePaths = pullRequest.files.nodes.map((f) => f.path)
-        const hash = await computeHash(pullRequest.title, pullRequest.bodyText, filePaths)
+        const hash = await hashPr(pullRequest)
         const existingPR = mergedPullRequests[pullRequest.id]
 
         if (!existingPR || existingPR.hash !== hash) {
@@ -287,7 +255,6 @@ export const repositoriesRoutes = new Hono<HonoContext>()
         .set({
           lastSyncAt: Date.now(),
           updatedAt: Date.now(),
-          errorMessage: null,
         })
         .where(and(eq(repositoriesTable.owner, owner), eq(repositoriesTable.repo, repo)))
 
@@ -298,13 +265,7 @@ export const repositoriesRoutes = new Hono<HonoContext>()
         pullRequestsCount: Object.keys(mergedPullRequests).length,
       })
     } catch (error) {
-      await db
-        .update(repositoriesTable)
-        .set({
-          errorMessage: error instanceof Error ? error.message : "Unknown error",
-          updatedAt: Date.now(),
-        })
-        .where(and(eq(repositoriesTable.owner, owner), eq(repositoriesTable.repo, repo)))
+      console.error(error)
 
       return c.json(
         {

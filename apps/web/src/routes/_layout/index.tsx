@@ -3,12 +3,7 @@ import { apiClient } from "@/lib/api"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useMemo, useState } from "react"
-
-interface Repository {
-  owner: string
-  repo: string
-  lastSyncAt: number | null
-}
+import type { Repository } from "shared"
 
 function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp || timestamp === 0) return "Never"
@@ -87,7 +82,7 @@ export const Route = createFileRoute("/_layout/")({
         ) : (
           filteredRepos.map((repo) => (
             <Link
-              key={`${repo.owner}/${repo.repo}`}
+              key={repo.id}
               to="/repos/$owner/$repo"
               params={{ owner: repo.owner, repo: repo.repo }}
               className="flex items-center justify-between"

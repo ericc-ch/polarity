@@ -7,12 +7,12 @@ export function prepIssue(issue: Issue): string {
 }
 
 export function prepPullRequest(pullRequest: PullRequest): string {
-  const filePaths = pullRequest.files.nodes.map((f) => f.path).join("\n")
-  return pullRequest.title + "\n\n" + pullRequest.bodyText + "\n\n" + filePaths
+  const filePaths = pullRequest.files.nodes.map((f) => f.path)
+  return pullRequest.title + "\n\n" + pullRequest.bodyText + "\n\n" + filePaths.join("\n")
 }
 
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  const model = ollama.embedding("nomic-embed-text")
+  const model = ollama.embedding("embeddinggemma")
   const result = await embedMany({
     model,
     values: texts,

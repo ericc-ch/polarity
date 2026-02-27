@@ -5,14 +5,14 @@ import { z } from "zod"
 export const repositories = sqlite.sqliteTable(
   "repositories",
   {
+    id: sqlite.integer().primaryKey({ autoIncrement: true }),
     owner: sqlite.text().notNull(),
     repo: sqlite.text().notNull(),
     lastSyncAt: sqlite.integer().notNull().default(0),
-    errorMessage: sqlite.text(),
     createdAt: sqlite.integer().notNull(),
     updatedAt: sqlite.integer().notNull(),
   },
-  (table) => [sqlite.primaryKey({ columns: [table.owner, table.repo] })],
+  (table) => [sqlite.unique("owner_repo_unique").on(table.owner, table.repo)],
 )
 
 const RepoName = z.string().regex(/^[a-zA-Z0-9._-]+$/)

@@ -99,13 +99,6 @@ function RepoDetailsPage() {
             <span className="text-muted-foreground">Updated</span>
             <span>{formatDate(repoData.updatedAt)}</span>
           </div>
-
-          {repoData.errorMessage && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Error</span>
-              <span className="text-destructive max-w-xs truncate">{repoData.errorMessage}</span>
-            </div>
-          )}
         </div>
 
         <Button
