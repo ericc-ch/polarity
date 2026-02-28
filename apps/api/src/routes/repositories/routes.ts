@@ -134,13 +134,6 @@ export const repositoriesRoutes = new Hono<HonoContext>()
       const mergedPullRequests: { [id: string]: PullRequestVector } =
         existingVectorObject?.pullRequests ?? {}
 
-      // Collect items that need embedding
-      const itemsToEmbed: Array<{
-        type: "issue" | "pr"
-        item: { id: string; number: number; state: string } | null
-        prepFn: () => string
-      }> = []
-
       // Fetch all issues with pagination
       const allIssues: Array<{
         id: string
@@ -197,83 +190,77 @@ export const repositoriesRoutes = new Hono<HonoContext>()
         cursor = prsResponse.repository.pullRequests.pageInfo.endCursor
       }
 
-      // Collect all issues that need embedding
-      for (const issue of allIssues) {
-        if (issue.state === "OPEN") {
-          itemsToEmbed.push({
-            type: "issue",
-            item: issue,
-            prepFn: () => prepIssue(issue),
-          })
-        }
+      // Process issues: filter open ones, embed them, build map
+      const openIssues = allIssues.filter((i) => i.state === "OPEN")
+      const issueTexts = openIssues.map((i) => prepIssue(i))
+      const issueEmbeddings = issueTexts.length > 0 ? await generateEmbeddings(issueTexts) : []
+
+      const issueVectors = new Map<string, IssueVector>()
+      for (let i = 0; i < openIssues.length; i++) {
+        const issue = openIssues[i]!
+        issueVectors.set(issue.id, {
+          id: issue.id,
+          number: issue.number,
+          state: "open",
+          vector: issueEmbeddings[i]!,
+        })
       }
 
-      // Collect all PRs that need embedding
-      for (const pullRequest of allPRs) {
-        const hash = await hashPr(pullRequest)
-        const existingPR = mergedPullRequests[pullRequest.id]
-
-        // Only embed if hash changed or new PR
-        if (!existingPR || existingPR.hash !== hash) {
-          itemsToEmbed.push({
-            type: "pr",
-            item: pullRequest,
-            prepFn: () => prepPullRequest(pullRequest),
-          })
-        }
-      }
-
-      // Generate embeddings for items that need them
-      const textsToEmbed = itemsToEmbed.map((i) => i.prepFn())
-      const embeddings: number[][] =
-        textsToEmbed.length > 0 ? await generateEmbeddings(textsToEmbed) : []
-
-      // Process all issues
+      // Remove closed issues from mergedIssues
       for (const issue of allIssues) {
-        if (issue.state === "OPEN") {
-          const embeddingIndex = itemsToEmbed.findIndex(
-            (i) => i.type === "issue" && i.item?.id === issue.id,
-          )
-          const vector =
-            embeddingIndex >= 0
-              ? embeddings[embeddingIndex]
-              : existingVectorObject?.issues[issue.id]?.vector
-          if (vector) {
-            mergedIssues[issue.id] = {
-              id: issue.id,
-              number: issue.number,
-              state: "open",
-              vector,
-            }
-          }
-        } else {
-          // Closed issue - remove from object
+        if (issue.state !== "OPEN") {
           // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete mergedIssues[issue.id]
         }
       }
 
-      // Process all PRs
-      for (const pullRequest of allPRs) {
-        const hash = await hashPr(pullRequest)
-        const existingPR = mergedPullRequests[pullRequest.id]
+      // Process PRs: compute hashes, filter ones needing embedding, embed them
+      const prsToEmbed: typeof allPRs = []
+      const prHashes = new Map<string, string>()
 
-        if (!existingPR || existingPR.hash !== hash) {
-          const embeddingIndex = itemsToEmbed.findIndex(
-            (i) => i.type === "pr" && i.item?.id === pullRequest.id,
-          )
-          const vector =
-            embeddingIndex >= 0
-              ? embeddings[embeddingIndex]
-              : existingVectorObject?.pullRequests[pullRequest.id]?.vector
-          if (vector) {
-            mergedPullRequests[pullRequest.id] = {
-              id: pullRequest.id,
-              number: pullRequest.number,
-              state: pullRequest.state === "OPEN" ? "open" : "closed",
-              hash,
-              vector,
-            }
+      for (const pr of allPRs) {
+        const hash = await hashPr(pr)
+        prHashes.set(pr.id, hash)
+        const existing = mergedPullRequests[pr.id]
+        if (!existing || existing.hash !== hash) {
+          prsToEmbed.push(pr)
+        }
+      }
+
+      const prTexts = prsToEmbed.map((pr) => prepPullRequest(pr))
+      const prEmbeddings = prTexts.length > 0 ? await generateEmbeddings(prTexts) : []
+
+      const prVectors = new Map<string, PullRequestVector>()
+      for (let i = 0; i < prsToEmbed.length; i++) {
+        const pr = prsToEmbed[i]!
+        prVectors.set(pr.id, {
+          id: pr.id,
+          number: pr.number,
+          state: pr.state === "OPEN" ? "open" : "closed",
+          hash: prHashes.get(pr.id)!,
+          vector: prEmbeddings[i]!,
+        })
+      }
+
+      // Merge new issue vectors into mergedIssues
+      for (const [id, issueVector] of issueVectors) {
+        mergedIssues[id] = issueVector
+      }
+
+      // Merge PR vectors into mergedPullRequests
+      for (const pr of allPRs) {
+        const hash = prHashes.get(pr.id)!
+        if (prVectors.has(pr.id)) {
+          mergedPullRequests[pr.id] = prVectors.get(pr.id)!
+        } else {
+          // Keep existing vector, update hash and state
+          const existing = mergedPullRequests[pr.id]!
+          mergedPullRequests[pr.id] = {
+            id: existing.id,
+            number: existing.number,
+            vector: existing.vector,
+            hash,
+            state: pr.state === "OPEN" ? "open" : "closed",
           }
         }
       }
