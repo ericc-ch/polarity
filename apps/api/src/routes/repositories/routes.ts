@@ -9,7 +9,7 @@ import { generateEmbeddings, prepIssue, prepPullRequest } from "../../lib/embedd
 import { getOctokit } from "../../lib/octokit"
 import { protectedMiddleware } from "../../middleware/protected"
 import type { HonoContext } from "../../types"
-import { FETCH_REPO_DATA_QUERY, type GraphQLResponse } from "./queries"
+import { FETCH_ISSUES_QUERY, FETCH_PULL_REQUESTS_QUERY, type GraphQLResponse } from "./queries"
 
 const submitSchema = z.object({
   repoUrl: z.string().min(1),
@@ -129,21 +129,6 @@ export const repositoriesRoutes = new Hono<HonoContext>()
         existingVectorObject = JSON.parse(decompressed) as VectorObject
       }
 
-      const { repository: githubRepo } = await octokit.graphql<GraphQLResponse>(
-        FETCH_REPO_DATA_QUERY,
-        {
-          owner,
-          repo,
-          issuesFirst: 1,
-          issuesSince: since,
-          pullRequestsFirst: 1,
-          pullRequestsFilesFirst: 100,
-        },
-      )
-
-      const issue = githubRepo.issues.nodes.at(0)
-      const pullRequest = githubRepo.pullRequests.nodes.at(0)
-
       // Build the vector object
       const mergedIssues: { [id: string]: IssueVector } = existingVectorObject?.issues ?? {}
       const mergedPullRequests: { [id: string]: PullRequestVector } =
@@ -152,19 +137,79 @@ export const repositoriesRoutes = new Hono<HonoContext>()
       // Collect items that need embedding
       const itemsToEmbed: Array<{
         type: "issue" | "pr"
-        item: typeof issue | typeof pullRequest
+        item: { id: string; number: number; state: string } | null
         prepFn: () => string
       }> = []
 
-      if (issue && issue.state === "OPEN") {
-        itemsToEmbed.push({
-          type: "issue",
-          item: issue,
-          prepFn: () => prepIssue(issue),
-        })
+      // Fetch all issues with pagination
+      const allIssues: Array<{
+        id: string
+        number: number
+        title: string
+        bodyText: string
+        state: "OPEN" | "CLOSED"
+      }> = []
+      let hasNextPage = true
+      let cursor: string | null = null
+
+      while (hasNextPage) {
+        const issuesResponse: GraphQLResponse = await octokit.graphql<GraphQLResponse>(
+          FETCH_ISSUES_QUERY,
+          {
+            owner,
+            repo,
+            first: 100,
+            after: cursor,
+            since,
+          },
+        )
+
+        allIssues.push(...issuesResponse.repository.issues.nodes)
+        hasNextPage = issuesResponse.repository.issues.pageInfo.hasNextPage
+        cursor = issuesResponse.repository.issues.pageInfo.endCursor
       }
 
-      if (pullRequest) {
+      // Fetch all pull requests with pagination
+      const allPRs: Array<{
+        id: string
+        number: number
+        title: string
+        bodyText: string
+        state: "OPEN" | "CLOSED" | "MERGED"
+        files: { nodes: Array<{ path: string }> }
+      }> = []
+      hasNextPage = true
+      cursor = null
+
+      while (hasNextPage) {
+        const prsResponse: GraphQLResponse = await octokit.graphql<GraphQLResponse>(
+          FETCH_PULL_REQUESTS_QUERY,
+          {
+            owner,
+            repo,
+            first: 100,
+            after: cursor,
+          },
+        )
+
+        allPRs.push(...prsResponse.repository.pullRequests.nodes)
+        hasNextPage = prsResponse.repository.pullRequests.pageInfo.hasNextPage
+        cursor = prsResponse.repository.pullRequests.pageInfo.endCursor
+      }
+
+      // Collect all issues that need embedding
+      for (const issue of allIssues) {
+        if (issue.state === "OPEN") {
+          itemsToEmbed.push({
+            type: "issue",
+            item: issue,
+            prepFn: () => prepIssue(issue),
+          })
+        }
+      }
+
+      // Collect all PRs that need embedding
+      for (const pullRequest of allPRs) {
         const hash = await hashPr(pullRequest)
         const existingPR = mergedPullRequests[pullRequest.id]
 
@@ -183,8 +228,8 @@ export const repositoriesRoutes = new Hono<HonoContext>()
       const embeddings: number[][] =
         textsToEmbed.length > 0 ? await generateEmbeddings(textsToEmbed) : []
 
-      // Process issue
-      if (issue) {
+      // Process all issues
+      for (const issue of allIssues) {
         if (issue.state === "OPEN") {
           const embeddingIndex = itemsToEmbed.findIndex(
             (i) => i.type === "issue" && i.item?.id === issue.id,
@@ -208,8 +253,8 @@ export const repositoriesRoutes = new Hono<HonoContext>()
         }
       }
 
-      // Process PR
-      if (pullRequest) {
+      // Process all PRs
+      for (const pullRequest of allPRs) {
         const hash = await hashPr(pullRequest)
         const existingPR = mergedPullRequests[pullRequest.id]
 

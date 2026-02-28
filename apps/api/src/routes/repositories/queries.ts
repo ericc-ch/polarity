@@ -17,30 +17,37 @@ export type PullRequest = {
   }
 }
 
+export type PageInfo = {
+  hasNextPage: boolean
+  endCursor: string | null
+}
+
 export type GraphQLResponse = {
   repository: {
     issues: {
       nodes: Array<Issue>
+      pageInfo: PageInfo
     }
     pullRequests: {
       nodes: Array<PullRequest>
+      pageInfo: PageInfo
     }
   }
 }
 
-export const FETCH_REPO_DATA_QUERY = /* GraphQL */ `
+export const FETCH_ISSUES_QUERY = /* GraphQL */ `
   query (
     $owner: String!
     $repo: String!
-    $issuesFirst: Int!
-    $issuesSince: DateTime
-    $pullRequestsFirst: Int!
-    $pullRequestsFilesFirst: Int!
+    $first: Int!
+    $after: String
+    $since: DateTime
   ) {
     repository(owner: $owner, name: $repo) {
       issues(
-        first: $issuesFirst
-        filterBy: { states: OPEN, since: $issuesSince }
+        first: $first
+        after: $after
+        filterBy: { states: OPEN, since: $since }
       ) {
         nodes {
           id
@@ -49,19 +56,34 @@ export const FETCH_REPO_DATA_QUERY = /* GraphQL */ `
           bodyText
           state
         }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
       }
-      pullRequests(first: $pullRequestsFirst, states: OPEN) {
+    }
+  }
+`
+
+export const FETCH_PULL_REQUESTS_QUERY = /* GraphQL */ `
+  query ($owner: String!, $repo: String!, $first: Int!, $after: String) {
+    repository(owner: $owner, name: $repo) {
+      pullRequests(first: $first, after: $after, states: OPEN) {
         nodes {
           id
           number
           title
           bodyText
           state
-          files(first: $pullRequestsFilesFirst) {
+          files(first: 100) {
             nodes {
               path
             }
           }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
         }
       }
     }
